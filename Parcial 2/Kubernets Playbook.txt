@@ -1,0 +1,90 @@
+Instalación de librerías REDHAT
+_________________________________
+sudo yum -y install git wget curl vim bash-completion tmux
+sudo yum install epel-release
+sudo yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+sudo yum install ansible
+
+Cambiar hostname en los 3 nodos
+________________________________
+sudo hostname master.utslp.net
+sudo vi /etc/hostname
+hostnamectl status
+sudo hostname nodo1.utslp.net
+sudo vi /etc/hostname
+hostnamectl status
+sudo hostname nodo2.utslp.net
+sudo vi /etc/hostname
+hostnamectl status
+
+
+Configuración Ansible
+______________________
+vi /etc/ansible/hosts 
+[all]
+192.168.217.128
+192.168.217.129
+192.168.217.130
+
+vi /etc/hosts
+192.168.217.128 master.utslp.net master
+192.168.217.129 nodo1.utslp.net nodo1
+192.168.217.130 nodo2.utslp.net nodo2
+
+ssh-keygen
+ssh-copy-id root@192.168.217.128
+ssh-copy-id root@192.168.217.129
+ssh-copy-id root@192.168.217.130
+
+Instalación de k8s
+___________________
+git clone https://github.com/jmutai/k8s-pre-bootstrap.git
+cd k8s-pre-bootstrap
+vi hosts
+[k8snodes] 
+Master
+Nodo1
+Nodo2
+
+Playbook para instalar Kubernetes
+__________________________________
+vi k8s-prep.yml
+**cambiar zona horaria**
+America/Mexico_City
+
+Revisión del servicio ssh
+_________________________
+vi /etc/ssh/sshd_config
+PermitRootLogin yes
+
+systemctl restart ssh
+passwd root
+
+Ejecución de Playbook
+____________________
+ssh (master, nodo1 o nodo2)
+ansible-playbook  --syntax-check -i hosts k8s-prep.yml
+eval `ssh-agent -s` && ssh-add
+ansible-playbook -i hosts k8s-prep.yml
+
+Revisión de servicios
+______________________
+systemctl status crio
+sysctl -p
+systemctl status firewalld
+firewall-cmd --list-all
+
+*Respuesta del listado*
+public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp1s0
+  sources:
+  services: cockpit dhcpv6-client ssh
+  ports: 22/tcp 80/tcp 443/tcp 6443/tcp 2379-2380/tcp 10250/tcp 10251/tcp 10252/tcp 30000-32767/tcp 4789/udp 5473/tcp 179/tcp
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:

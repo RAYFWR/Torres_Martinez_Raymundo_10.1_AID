@@ -1,0 +1,41 @@
+cat app/__init__.py
+from flask import Flask
+app = Flask(__name__)
+from app import views
+
+
+cat app/views.py
+from app import app
+
+@app.route('/')
+def home():
+   return "Mi segundo Docker"
+
+
+cat uwsgi.ini
+[uwsgi]
+module = main
+callable = app
+master = true
+
+
+cat requirements.txt
+Flask==1.0.2
+
+
+cat Dockerfile
+FROM tiangolo/uwsgi-nginx-flask:python3.6-alpine3.7
+RUN apk --update add bash nano
+ENV STATIC_URL /static
+ENV STATIC_PATH /var/www/app/static
+COPY ./requirements.txt /var/www/requirements.txt
+RUN pip install -r /var/www/requirements.txt
+
+
+cat start.sh
+#!/bin/bash
+app="docker.web"
+docker build -t ${app} .
+docker run -d -p 56733:80 \
+  --name=${app} \
+  -v $PWD:/app ${app}

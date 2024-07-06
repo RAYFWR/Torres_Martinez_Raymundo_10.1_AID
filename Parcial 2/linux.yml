@@ -1,0 +1,15 @@
+---
+- name: Instalacion de apache
+  hosts: grupo1
+  tasks:
+    - name: Instalar Apache
+      package:
+        name: httpd
+        state: present
+
+    - name: Iniciar apache
+      service:
+        name: httpd
+        state: started
+
+

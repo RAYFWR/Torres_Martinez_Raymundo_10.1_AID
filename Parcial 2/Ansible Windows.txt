@@ -1,0 +1,47 @@
+Crear archivos en carpeta Ansible
+_________________________________
+vi buscar_carpeta_win.yml 
+
+---
+- name: Buscar carpeta en host de Windows
+  hosts: win
+  tasks:
+
+    - name: Buscar carpeta
+      ansible.windows.win_find:
+        paths: C:\ansible_examples\{{ ansible_date_time.date }}
+      register: result
+
+    - name: Mostrar número de carpetas encontradas
+      ansible.builtin.debug:
+        var: result.examined
+
+    - name: Crear copia de archivos si se encuentra la carpeta
+      ansible.windows.win_copy:
+        src: C:\ansible_examples\
+        dest: C:\ansible_examples_bkp\
+        remote_src: yes
+      when: result.examined > 0
+-----------------------------------------------------------------
+Agregar al archivo hosts
+
+[win]
+192.168.217.131
+
+[win:vars]
+ansible_user=Administrador
+ansible_password=C135.
+ansible_ssh_port=5985
+ansible_connection=winrm
+ansible_winrm_transport=ntlm
+ansible_winrm_server_cert_validation=ignore
+ansible_python_interpreter=/etc/ansible/docker3/ansible-env/bin/Python
+
+Ejecutar comandos
+___________________
+source /etc/ansible/docker3/ansible-env/bin/actívate
+ansible-playbook buscar_carpeta_win.yml -i hosts
+deactivate
+
+
+
